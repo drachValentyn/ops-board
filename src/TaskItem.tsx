@@ -13,9 +13,11 @@ export type TaskItemProps = {
 
 type TaskItemComponentProps = {
   task: TaskItemProps;
+  deleteTask: (id: TaskItemProps["id"]) => void;
+  completeTask?: ((id: TaskItemProps["id"]) => void) | undefined;
 };
 
-const TaskItem: React.FC<TaskItemComponentProps> = ({ task }) => {
+const TaskItem: React.FC<TaskItemComponentProps> = ({ task, deleteTask, completeTask }) => {
   const { title, priority, deadline, completed } = task;
 
   return (
@@ -28,11 +30,10 @@ const TaskItem: React.FC<TaskItemComponentProps> = ({ task }) => {
       </div>
 
       <div className="task-buttons">
-        {completed ?
-          <button className="complete-button">Complete</button> :
-          ""
-        }
-        <button className="delete-button">Delete</button>
+        {(!completed && completeTask) && (
+          <button className="complete-button" onClick={() => completeTask(task.id)}>Complete</button>
+        )}
+        <button className="delete-button" onClick={() => deleteTask(task.id)}>Delete</button>
       </div>
     </li>
   )

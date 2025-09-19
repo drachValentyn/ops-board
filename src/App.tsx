@@ -29,15 +29,21 @@ const App = () => {
     setTasks([...tasks, { ...task }])
   }
 
+  const deleteTask = (id: number) => {
+    setTasks(tasks.filter(task => task.id !== id));
+  }
+
+  const completeTask = (id: number) => {
+    setTasks(tasks.map(task => task.id === id ? { ...task, completed: true } : task));
+  }
+
   const activeTask = tasks.filter(task => !task.completed);
   const completedTask = tasks.filter(task => task.completed);
 
   return (
     <div className="app">
       <div className="task-container">
-
         <h1>Task List</h1>
-
         <button
           className={`close-button ${openSection.taskList ? "open" : ""}`}
           onClick={() => toggleOpenSection(TASK_LIST)}>
@@ -47,9 +53,9 @@ const App = () => {
         {openSection.taskList && <TaskForm addTask={addTask} />}
 
       </div>
+
       <div className="task-container">
         <h2>Tasks</h2>
-
         <button
           className={`close-button ${openSection.tasks ? "open" : ""}`}
           onClick={() => toggleOpenSection(TASKS)}>
@@ -65,8 +71,14 @@ const App = () => {
           </button>
         </div>
 
-        {openSection.tasks && <TaskList tasks={activeTask} />}
+        {openSection.tasks &&
+          <TaskList
+            deleteTask={deleteTask}
+            completeTask={completeTask}
+            tasks={activeTask} />
+        }
       </div>
+
       <div className="completed-task-container">
         <h2>Completed Tasks</h2>
 
@@ -76,7 +88,12 @@ const App = () => {
           +
         </button>
 
-        {openSection.completedTasks && <TaskList tasks={completedTask} />}
+        {openSection.completedTasks &&
+          <TaskList
+            deleteTask={deleteTask}
+            tasks={completedTask}
+          />
+        }
       </div>
 
       <footer className="footer">
