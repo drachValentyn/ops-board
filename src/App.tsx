@@ -10,6 +10,9 @@ const COMPLETED_TASKS = "completedTasks";
 type Section = typeof TASK_LIST | typeof TASKS | typeof COMPLETED_TASKS;
 type OpenSectionState = Record<Section, boolean>;
 
+type SortType = "date" | "priority";
+type SortOrder = "asc" | "desc";
+
 const App = () => {
   const [openSection, setOpenSection] = useState<OpenSectionState>({
     taskList: true,
@@ -17,28 +20,61 @@ const App = () => {
     completedTasks: false,
   });
   const [tasks, setTasks] = useState<TaskItemProps[]>([]);
+  const [sortType, setSortType] = useState<SortType>("date");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
-  const toggleOpenSection = (section: Section) => {
+  const toggleOpenSection = (section: Section): void => {
     setOpenSection(prevState => ({
       ...prevState,
       [section]: !prevState[section]
     }));
   };
 
-  const addTask = (task: TaskItemProps) => {
+  const addTask = (task: TaskItemProps): void => {
     setTasks([...tasks, { ...task }])
   }
 
-  const deleteTask = (id: number) => {
+  const deleteTask = (id: number): void => {
     setTasks(tasks.filter(task => task.id !== id));
   }
 
-  const completeTask = (id: number) => {
+  const completeTask = (id: number): void => {
     setTasks(tasks.map(task => task.id === id ? { ...task, completed: true } : task));
   }
 
-  const activeTask = tasks.filter(task => !task.completed);
-  const completedTask = tasks.filter(task => task.completed);
+  const sortTasks = (tasks: TaskItemProps[]): TaskItemProps[] => {
+    const priorityOrder: Record<NonNullable<TaskItemProps['priority']>, number> = {
+      high: 3,
+      medium: 2,
+      low: 1,
+    };
+
+    return tasks.slice().sort((a, b) => {
+      if (sortType === "priority") {
+        const aPriority = priorityOrder[a.priority ?? "low"];
+        const bPriority = priorityOrder[b.priority ?? "low"];
+
+        return sortOrder === "asc" ? aPriority - bPriority : bPriority - aPriority;
+      } else {
+        const aDate = a.deadline ? new Date(a.deadline).getTime() : 0;
+        const bDate = b.deadline ? new Date(b.deadline).getTime() : 0;
+
+        return sortOrder === "asc" ? aDate - bDate : bDate - aDate;
+      }
+    });
+  }
+
+  const toggleSortOrder = (type: SortType): void => {
+    if (sortType === type) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortType(type);
+      setSortOrder("asc");
+    }
+  }
+
+  const activeTask = sortTasks(tasks.filter(task => !task.completed));
+  const completedTask = sortTasks(tasks.filter(task => task.completed));
 
   return (
     <div className="app">
@@ -63,11 +99,15 @@ const App = () => {
         </button>
 
         <div className="sort-controls">
-          <button className="sort-button">
-            By Date
+          <button
+            className={`sort-button ${sortType === "date" ? "active" : ""}`}
+            onClick={() => toggleSortOrder("date")}>
+            By Date {sortType === "date" && (sortOrder === "asc" ? "↑" : "↓")}
           </button>
-          <button className="sort-button">
-            By Priority
+          <button
+            className={`sort-button ${sortType === "priority" ? "active" : ""}`}
+            onClick={() => toggleSortOrder("priority")}>
+            By Priority {sortType === "priority" && (sortOrder === "asc" ? "↑" : "↓")}
           </button>
         </div>
 
@@ -83,12 +123,12 @@ const App = () => {
         <h2>Completed Tasks</h2>
 
         <button
-          className={`close-button ${openSection.completedTasks ? "open" : ""}`}
+          className={`close-button ${(openSection.completedTasks || completedTask.length > 0) ? "open" : ""}`}
           onClick={() => toggleOpenSection(COMPLETED_TASKS)}>
           +
         </button>
 
-        {openSection.completedTasks &&
+        {(openSection.completedTasks || completedTask.length > 0) &&
           <TaskList
             deleteTask={deleteTask}
             tasks={completedTask}
