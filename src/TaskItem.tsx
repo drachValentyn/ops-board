@@ -13,15 +13,16 @@ export type TaskItemProps = {
 
 type TaskItemComponentProps = {
   task: TaskItemProps;
+  isOverdue: boolean;
   deleteTask: (id: TaskItemProps["id"]) => void;
   completeTask?: ((id: TaskItemProps["id"]) => void) | undefined;
 };
 
-const TaskItem: React.FC<TaskItemComponentProps> = ({ task, deleteTask, completeTask }) => {
+const TaskItem: React.FC<TaskItemComponentProps> = ({ task, isOverdue, deleteTask, completeTask }) => {
   const { title, priority, deadline, completed } = task;
 
   return (
-    <li className={`task-item ${priority}`}>
+    <li className={`task-item ${priority} ${isOverdue && !completed ? "overdue" : ""}`}>
       <div className="task-info">
         <div>{title}: <strong>{priority}</strong></div>
         <div className="task-deadline">

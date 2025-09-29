@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TaskForm from "./TaskForm";
 import TaskList from "./TaskList";
 import type { TaskItemProps } from "./TaskItem";
@@ -22,6 +22,15 @@ const App = () => {
   const [tasks, setTasks] = useState<TaskItemProps[]>([]);
   const [sortType, setSortType] = useState<SortType>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 10000)
+
+    return () => clearInterval(timer);
+  }, [])
 
   const toggleOpenSection = (section: Section): void => {
     setOpenSection(prevState => ({
@@ -113,9 +122,11 @@ const App = () => {
 
         {openSection.tasks &&
           <TaskList
+            tasks={activeTask}
+            currentTime={currentTime}
             deleteTask={deleteTask}
             completeTask={completeTask}
-            tasks={activeTask} />
+          />
         }
       </div>
 
